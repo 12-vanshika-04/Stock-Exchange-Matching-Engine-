@@ -1,0 +1,33 @@
+Pipeline benchmark: 1000000 commands (70% limit, 20% market, 10% cancel), 6 symbols, 1000 users, seed 42
+Hardware threads: 14 (the pipeline runs 3 busy threads: producer, engine, consumer)
+
+Direct call (one thread)         : 8962627 commands/sec  (median of 3 runs)
+Pipeline (3 threads, 2 queues)   : 3582925 commands/sec  (median of 3 runs)
+Pipeline as % of direct          : 40%
+Pipeline events == direct events : yes, identical totals every round
+
+Round trip, idle pipeline (submit one command, wait for its event):
+  ns: p50 384 | p90 433 | p99 1302 | p99.9 9520 | max 1346572
+
+Fingerprint:
+  events          : 1862414
+  trades          : 862414
+  shares traded   : 43550973
+  order rejects   : 0
+  cancels ok      : 3362
+  cancels refused : 96171
+  matches the earlier engine benchmark (862414 / 43550973 / 3362): yes
+
+Single writer vs locks: 900467 commands (cancels removed), 3 runs each, median
+  direct, 1 thread, no lock    :    8918868 commands/sec
+  pipeline, 1 producer         :    3349423 commands/sec  ( 38% of direct)  checks ok
+  std::mutex 1 thread  :    7279560 commands/sec  ( 82% of direct)  checks ok
+  std::mutex 2 threads :    3438188 commands/sec  ( 39% of direct)  checks ok
+  std::mutex 4 threads :    2138194 commands/sec  ( 24% of direct)  checks ok
+  std::mutex 8 threads :    1206242 commands/sec  ( 14% of direct)  checks ok
+  spinlock   1 thread  :    9234155 commands/sec  (104% of direct)  checks ok
+  spinlock   2 threads :    8553609 commands/sec  ( 96% of direct)  checks ok
+  spinlock   4 threads :    7729592 commands/sec  ( 87% of direct)  checks ok
+  spinlock   8 threads :    6261536 commands/sec  ( 70% of direct)  checks ok
+  With 2+ locked threads the totals differ run to run (random arrival order), so
+  "checks" means: cash and shares conserved, no negative balance or reservation.

@@ -1,0 +1,142 @@
+:root {
+  --bg: #0f1419;
+  --panel: #171d25;
+  --border: #2a3441;
+  --text: #e6edf3;
+  --muted: #8b98a8;
+  --up: #3fb27f;
+  --down: #e5484d;
+  --accent: #3b82f6;
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); }
+h2 { margin: 0 0 8px; font-size: 1rem; font-weight: 600; }
+
+.app { max-width: 960px; margin: 0 auto; padding: 12px; display: grid; gap: 12px; }
+
+.header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 1.1rem; margin-right: auto; }
+
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 0.8rem; border: 1px solid var(--border); }
+.badge-ok { color: var(--up); border-color: var(--up); }
+.badge-bad { color: var(--down); border-color: var(--down); }
+.badge-wait { color: var(--muted); }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.account { display: flex; align-items: center; gap: 6px; }
+.account label { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: 0.85rem; }
+.account input { width: 4.5rem; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); color: var(--text); }
+.account input[aria-invalid='true'] { border-color: var(--down); }
+button { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel); color: var(--text); cursor: pointer; }
+button:disabled { opacity: 0.5; cursor: default; }
+
+.tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.tab { display: grid; gap: 2px; min-width: 7.5rem; text-align: left; padding: 8px 12px; }
+.tab.active { border-color: var(--accent); background: #1c2735; }
+.tab-name { font-weight: 600; font-size: 0.9rem; }
+.tab-price { color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+.summary { display: grid; gap: 4px; }
+.summary-symbol { color: var(--muted); font-size: 0.85rem; letter-spacing: 0.05em; }
+.summary-price { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); font-size: 0.85rem; }
+.up { color: var(--up); }
+.down { color: var(--down); }
+.flat { color: var(--muted); }
+
+.table-wrap { max-height: 22rem; overflow-y: auto; }
+.tape { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.tape th, .tape td { padding: 6px 4px; border-bottom: 1px solid var(--border); text-align: left; }
+.tape .num { text-align: right; }
+.tape td.num svg { vertical-align: -2px; }
+
+/* Wider screens: more room, nothing below this line changes the phone layout. */
+@media (min-width: 900px) {
+  .app { padding: 24px; gap: 16px; }
+  .tabs { overflow-x: visible; flex-wrap: wrap; }
+  .summary-price { font-size: 2.5rem; }
+}
+/* ---- order form, my orders, my fills ---- */
+.layout { display: grid; gap: 12px; }
+
+.form { display: grid; gap: 10px; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.seg button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.seg button[aria-pressed='true'] { border-color: var(--accent); background: #1c2735; }
+.seg .buy[aria-pressed='true'] { border-color: var(--up); color: var(--up); }
+.seg .sell[aria-pressed='true'] { border-color: var(--down); color: var(--down); }
+
+.field { display: grid; gap: 4px; }
+.field label { color: var(--muted); font-size: 0.85rem; }
+.field input { padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 1rem; }
+.field input[aria-invalid='true'] { border-color: var(--down); }
+.field-error { color: var(--down); font-size: 0.8rem; }
+.hint { margin: 0; color: var(--muted); font-size: 0.8rem; }
+
+.submit { padding: 10px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.submit.buy { background: var(--up); border-color: var(--up); color: #06110c; }
+.submit.sell { background: var(--down); border-color: var(--down); color: #fff; }
+
+.result { padding: 8px 10px; border-radius: 6px; font-size: 0.9rem; border: 1px solid var(--border); margin-top: 8px; }
+.form .result { margin-top: 0; }
+.result.ok { border-color: var(--up); color: var(--up); }
+.result.error { border-color: var(--down); color: var(--down); }
+.notice { display: flex; gap: 6px; align-items: flex-start; margin: 0 0 8px; color: var(--muted); font-size: 0.85rem; }
+
+.status { padding: 2px 8px; border-radius: 999px; font-size: 0.75rem; border: 1px solid var(--border); }
+.status-new { color: var(--accent); border-color: var(--accent); }
+.status-partial { color: #d9a441; border-color: #d9a441; }
+.status-filled { color: var(--up); border-color: var(--up); }
+.status-cancelled { color: var(--muted); }
+.icon-btn { padding: 4px 6px; line-height: 0; }
+.side-buy { color: var(--up); }
+.side-sell { color: var(--down); }
+
+/* Wider screens: two columns. Nothing here changes the phone layout. */
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      'summary form'
+      'tape orders'
+      'tape fills';
+    align-items: start;
+  }
+  .area-summary { grid-area: summary; }
+  .area-form { grid-area: form; }
+  .area-tape { grid-area: tape; }
+  .area-orders { grid-area: orders; }
+  .area-fills { grid-area: fills; }
+}
+/* ---- portfolio and order book ---- */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: 8px; margin-bottom: 10px; }
+.stat { display: grid; gap: 2px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; }
+.stat-label { color: var(--muted); font-size: 0.75rem; }
+.stat-value { font-weight: 600; font-size: 0.95rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.tape tr.row-selected td { background: #1c2735; }
+
+.book { display: grid; font-variant-numeric: tabular-nums; }
+.book-head, .level { display: grid; grid-template-columns: 1fr 1fr; padding: 4px 8px; }
+.book-head { color: var(--muted); font-size: 0.8rem; }
+.book-head span:last-child, .level span:last-child { text-align: right; }
+.level-ask { color: var(--down); background: linear-gradient(to left, rgba(229, 72, 77, 0.22) var(--w), transparent var(--w)); }
+.level-bid { color: var(--up); background: linear-gradient(to left, rgba(63, 178, 127, 0.22) var(--w), transparent var(--w)); }
+.spread { text-align: center; padding: 6px; margin: 4px 0; color: var(--muted); font-size: 0.8rem; border-block: 1px solid var(--border); }
+
+/* Wider screens: the book and portfolio join the grid. Nothing here changes the phone layout. */
+@media (min-width: 900px) {
+  .layout {
+    grid-template-areas:
+      'summary form'
+      'book portfolio'
+      'tape orders'
+      'tape fills';
+  }
+  .area-book { grid-area: book; }
+  .area-portfolio { grid-area: portfolio; }
+}

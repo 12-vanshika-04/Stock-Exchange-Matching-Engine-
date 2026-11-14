@@ -1,0 +1,4 @@
+A = V1.1 (std containers), B = V1.2 (pmr pool). 5 alternating runs, deep workload, medians
+           ops/sec     p99 ns   p99.9 ns
+A          1495290       1526       4848
+B          1796208       2259       6639

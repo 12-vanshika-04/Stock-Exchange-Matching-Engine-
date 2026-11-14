@@ -1,0 +1,25 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 3K of event 'cpu-clock:u'
+# Event count (approx.): 3807807804
+#
+# Overhead  Command       Shared Object        Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+# ........  ............  ...................  ...............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+    35.20%  engine_bench  libstdc++.so.6.0.35  [.] std::_Rb_tree_increment(std::_Rb_tree_node_base*)
+    16.51%  engine_bench  engine_bench         [.] exch::OrderBook::add(exch::Order const&)
+    12.36%  engine_bench  engine_bench         [.] exch::Exchange::marketBuyCost(unsigned short, long) const
+     8.86%  engine_bench  engine_bench         [.] std::_Hashtable<unsigned long, std::pair<unsigned long const, exch::OrderBook::Locator>, std::allocator<std::pair<unsigned long const, exch::OrderBook::Locator> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_insert_unique_node(unsigned long, unsigned long, std::__detail::_Hash_node<std::pair<unsigned long const, exch::OrderBook::Locator>, false>*, unsigned long)
+     4.97%  engine_bench  libc.so.6            [.] unlink_chunk.isra.0
+     3.44%  engine_bench  engine_bench         [.] (anonymous namespace)::apply(exch::Exchange&, (anonymous namespace)::Op const&, (anonymous namespace)::Totals&)
+     2.89%  engine_bench  libc.so.6            [.] _int_free_merge_chunk
+     2.39%  engine_bench  engine_bench         [.] exch::Exchange::submit(unsigned int, unsigned short, exch::Side, exch::OrderType, long, long)
+     2.21%  engine_bench  engine_bench         [.] std::vector<exch::OrderBook, std::allocator<exch::OrderBook> >::~vector()
+
+
+#
+# (Cannot load tips.txt file, please install perf!)
+#

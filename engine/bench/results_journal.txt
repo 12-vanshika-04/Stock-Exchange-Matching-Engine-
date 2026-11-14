@@ -1,0 +1,16 @@
+Durability cost: 1000000 commands (70% limit, 20% market, 10% cancel), 6 symbols, 1000 users, seed 42
+Hardware threads: 14. The pipeline runs 3 busy threads: producer, engine, consumer.
+
+Throughput, same threaded engine, median of 3 runs:
+  no journal                           :    4709935 commands/sec  (1000000 commands)
+  journal, flush per batch             :    3249535 commands/sec  ( 69% of no journal)  survives a process crash
+  journal, flush + fdatasync per batch :    3915923 commands/sec  ( 83% of no journal)  survives power loss  (100000 commands)
+  (a batch is at most 256 commands; the journal costs 46 bytes per command)
+
+Raw disk cost of the sync:
+  one batch (11776 bytes) + fdatasync, 300 samples: p50 2 us | p99 3 us | max 16 us
+  so a sync per 256-command batch caps throughput near 128000000 commands/sec
+
+Recovery speed (replay the whole journal into a fresh engine):
+  journal of 1007000 records (46.3 MB) replayed in 0.178 s = 5670970 records/sec
+  (the file was still in the OS cache; after a reboot the read would be slower)

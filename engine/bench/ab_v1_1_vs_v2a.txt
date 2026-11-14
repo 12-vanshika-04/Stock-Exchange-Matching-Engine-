@@ -1,0 +1,4 @@
+A = V1.1, B = V2a (flat order index, per-symbol ids). 5 alternating runs, medians
+deep:    A 2353115 ops/s p99 900 p99.9 1615  |  B 6754243 ops/s p99 486 p99.9 891
+default: A 9659593 ops/s p99 362 p99.9 695   |  B 10491807 ops/s p99 299 p99.9 549
+peak memory (default workload): V1.1 51 MB | V2a 100 MB (sparse version was 310 MB)

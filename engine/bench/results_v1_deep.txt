@@ -1,0 +1,13 @@
+Engine benchmark (V1: std::map + std::list)
+Workload: DEEP BOOK, 1000000 ops = 70% passive limit, 5% aggressive limit, 15% market, 10% cancel; 6 symbols, 1000 users, seed 42
+
+Throughput : 954413 ops/sec  (1.048 s total)
+Latency ns : p50 304 | p90 838 | p99 9468 | p99.9 23505 | max 12045333
+             (each figure includes ~16 ns of clock-reading overhead)
+
+Fingerprint (V2 must match these exactly):
+  trades        : 248536
+  shares traded : 5065380
+  rejects       : 0
+  cancels ok    : 76310
+  deterministic : yes (both runs identical)

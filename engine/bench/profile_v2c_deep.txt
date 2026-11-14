@@ -1,0 +1,25 @@
+2,600,143,607 (100.0%)  PROGRAM TOTALS
+374,303,046 (14.40%)  include/Exchange.hpp:exch::Exchange::submit(unsigned int, unsigned short, exch::Side, exch::OrderType, long, long) [/home/vanshika/exchange/engine/b
+208,821,106 ( 8.03%)  ./malloc/./malloc/malloc.c:_int_malloc [/usr/lib/x86_64-linux-gnu/libc.so.6]
+197,967,663 ( 7.61%)  include/MatchingEngine.hpp:exch::MatchingEngine::submit(exch::Order) [/home/vanshika/exchange/engine/build-prof/engine_bench]
+130,777,187 ( 5.03%)  ./malloc/./malloc/malloc.c:_int_free_merge_chunk [/usr/lib/x86_64-linux-gnu/libc.so.6]
+110,827,082 ( 4.26%)  /usr/include/c++/15/bits/random.tcc:(anonymous namespace)::generateDeepOps(unsigned long, unsigned int) [clone .constprop.0]
+106,321,011 ( 4.09%)  bench/bench_engine.cpp:(anonymous namespace)::apply(exch::Exchange&, (anonymous namespace)::Op const&, (anonymous namespace)::Totals&) [/home/vanshi
+ 95,310,448 ( 3.67%)  /usr/include/c++/15/bits/random.tcc:std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 263
+ 94,149,718 ( 3.62%)  ./malloc/./malloc/malloc.c:free [/usr/lib/x86_64-linux-gnu/libc.so.6]
+ 73,129,647 ( 2.81%)  include/BookSide.hpp:exch::MatchingEngine::submit(exch::Order)
+ 71,798,175 ( 2.76%)  ./malloc/./malloc/malloc.c:malloc [/usr/lib/x86_64-linux-gnu/libc.so.6]
+ 66,269,921 ( 2.55%)  /usr/include/c++/15/bits/stl_algo.h:void std::__introsort_loop<__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<
+ 64,000,064 ( 2.46%)  ???:std::chrono::_V2::steady_clock::now() [/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.35]
+ 61,863,603 ( 2.38%)  /usr/include/c++/15/bits/stl_construct.h:exch::MatchingEngine::submit(exch::Order)
+ 61,278,132 ( 2.36%)  /usr/include/c++/15/bits/stl_vector.h:exch::Exchange::submit(unsigned int, unsigned short, exch::Side, exch::OrderType, long, long)
+ 56,010,941 ( 2.15%)  bench/bench_engine.cpp:(anonymous namespace)::generateDeepOps(unsigned long, unsigned int) [clone .constprop.0] [/home/vanshika/exchange/engine/buil
+ 53,345,367 ( 2.05%)  /usr/include/c++/15/bits/stl_vector.h:exch::MatchingEngine::submit(exch::Order)
+ 49,120,215 ( 1.89%)  include/OrderBook.hpp:exch::MatchingEngine::submit(exch::Order)
+ 45,650,608 ( 1.76%)  ???:operator new(unsigned long) [/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.35]
+ 44,000,044 ( 1.69%)  ./time/../sysdeps/unix/sysv/linux/clock_gettime.c:clock_gettime@@GLIBC_2.17 [/usr/lib/x86_64-linux-gnu/libc.so.6]
+ 41,425,098 ( 1.59%)  ./malloc/./malloc/malloc.c:_int_free_maybe_trim [/usr/lib/x86_64-linux-gnu/libc.so.6]
+ 36,523,371 ( 1.40%)  include/AccountManager.hpp:exch::Exchange::submit(unsigned int, unsigned short, exch::Side, exch::OrderType, long, long)
+ 36,408,822 ( 1.40%)  /usr/include/c++/15/bits/stl_uninitialized.h:exch::MatchingEngine::submit(exch::Order)
+ 36,208,095 ( 1.39%)  ./malloc/./malloc/malloc.c:__libc_malloc2 [/usr/lib/x86_64-linux-gnu/libc.so.6]
+ 33,521,110 ( 1.29%)  ./malloc/./malloc/malloc.c:unlink_chunk.isra.0 [/usr/lib/x86_64-linux-gnu/libc.so.6]

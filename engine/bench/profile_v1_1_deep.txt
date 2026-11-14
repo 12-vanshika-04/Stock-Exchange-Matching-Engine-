@@ -1,0 +1,25 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 3K of event 'cpu-clock:u'
+# Event count (approx.): 1796898000
+#
+# Overhead  Command       Shared Object         Symbol                                                                                                
+# ........  ............  ....................  ......................................................................................................
+#
+    30.65%  engine_bench  engine_bench          [.] exch::OrderBook::add(exch::Order const&)
+    17.71%  engine_bench  engine_bench          [.] std::_Hashtable<unsigned long, std::pair<unsigned long const, exch::OrderBook::Locator>, std::allo
+    11.72%  engine_bench  libc.so.6             [.] unlink_chunk.isra.0
+     6.43%  engine_bench  engine_bench          [.] (anonymous namespace)::apply(exch::Exchange&, (anonymous namespace)::Op const&, (anonymous namespa
+     6.32%  engine_bench  libc.so.6             [.] _int_free_merge_chunk
+     4.84%  engine_bench  engine_bench          [.] exch::Exchange::submit(unsigned int, unsigned short, exch::Side, exch::OrderType, long, long)
+     4.23%  engine_bench  engine_bench          [.] std::vector<exch::OrderBook, std::allocator<exch::OrderBook> >::~vector()
+     3.34%  engine_bench  [vdso]                [.] __vdso_clock_gettime
+     2.51%  engine_bench  engine_bench          [.] exch::MatchingEngine::submit(exch::Order)
+
+
+#
+# (Cannot load tips.txt file, please install perf!)
+#

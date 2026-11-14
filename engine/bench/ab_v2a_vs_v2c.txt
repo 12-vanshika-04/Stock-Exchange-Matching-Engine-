@@ -1,0 +1,11 @@
+A = V2a (flat order index, std::map levels), B = array price levels. 5 alternating runs, medians
+deep, session 1: A 6264621 ops/s p99 548 p99.9 1035  |  B 9897550 ops/s p99 462 p99.9 1133
+deep, session 2: A 6555538 ops/s p99 512 p99.9 1032  |  B 8197487 ops/s p99 481 p99.9 902
+default:         A 10126421 ops/s p99 302 p99.9 560  |  B 9453403 ops/s p99 303 p99.9 578
+peak memory and page faults, default workload:
+  /home/vanshika/exchange-v2a/engine/build/engine_bench
+	Maximum resident set size (kbytes): 99680
+	Minor (reclaiming a frame) page faults: 27556
+  ./build/engine_bench
+	Maximum resident set size (kbytes): 95040
+	Minor (reclaiming a frame) page faults: 46575

@@ -1,0 +1,21 @@
+{
+  "name": "exchange-gateway",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "smoke": "node scripts/smoke.js",
+    "start": "node src/server.js",
+    "db:migrate": "node --env-file=.env scripts/db_migrate.js",
+    "db:check": "node --env-file=.env scripts/db_check.js",
+    "test:db": "node --env-file=.env --test test/db/*.test.js"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "mysql2": "^3.24.6",
+    "socket.io": "^4.8.4"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.4"
+  }
+}

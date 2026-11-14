@@ -1,0 +1,9 @@
+build/
+build-*/
+perf.data*
+callgrind.out*
+callgrind.out*
+node_modules/
+node_modules/
+dist/
+.env

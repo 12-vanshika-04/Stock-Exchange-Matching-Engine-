@@ -1,0 +1,19 @@
+Crash test: 12 rounds, SIGKILL after a random 20-200 ms, seed 1
+journal: /tmp/exch_crashdemo_914.journal
+
+round  ran(ms)        acked    journaled  journal state after the kill
+    1       48       128780       129024  clean
+    2       40       231168       231168  clean
+    3      132       579584       579840  clean
+    4      181      1039104      1039104  clean
+    5       49      1196288      1196471  torn tail (repaired on restart)
+    6      196      1797047      1797047  clean
+    7       31      1850551      1850551  clean
+    8       88      1957815      1957815  clean
+    9       94      2386359      2386359  clean
+   10       53      2599351      2599351  clean
+   11      177      3384503      3384503  clean
+   12       45      3587682      3587767  clean
+
+PASS: 3587767 commands journaled across 12 kills (1 of them left a torn tail)
+Recovered state equals an engine that never crashed. Cash and shares are conserved.

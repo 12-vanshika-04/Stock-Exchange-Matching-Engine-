@@ -1,0 +1,13 @@
+Engine benchmark (V1: std::map + std::list)
+Workload: 1000000 ops = 70% limit, 20% market, 10% cancel; 6 symbols, 1000 users, seed 42
+
+Throughput : 9335515 ops/sec  (0.107 s total)
+Latency ns : p50 120 | p90 229 | p99 400 | p99.9 753 | max 16427950
+             (each figure includes ~16 ns of clock-reading overhead)
+
+Fingerprint (V2 must match these exactly):
+  trades        : 862414
+  shares traded : 43550973
+  rejects       : 0
+  cancels ok    : 3362
+  deterministic : yes (both runs identical)
