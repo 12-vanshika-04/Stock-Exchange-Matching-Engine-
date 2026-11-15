@@ -26,7 +26,7 @@
 namespace exch::wire {
 
 enum class MsgType : std::uint8_t {
-    NEW_ORDER = 1, CANCEL_ORDER = 2, QUERY_ACCOUNT = 3, QUERY_BOOK = 4, EVENT = 16
+    NEW_ORDER = 1, CANCEL_ORDER = 2, QUERY_ACCOUNT = 3, QUERY_BOOK = 4, QUERY_INFO = 5, EVENT = 16
 };
 
 inline constexpr std::size_t kLenBytes         = 4;
@@ -35,6 +35,7 @@ inline constexpr std::size_t kNewOrderBody     = 32;
 inline constexpr std::size_t kCancelBody       = 22;
 inline constexpr std::size_t kQueryAccountBody = 12;
 inline constexpr std::size_t kQueryBookBody    = 14;
+inline constexpr std::size_t kQueryInfoBody    = 8;
 inline constexpr std::size_t kEventBody        = 108;
 
 class ByteWriter {
@@ -107,6 +108,10 @@ inline void encodeCommand(const Command& c, std::vector<std::uint8_t>& out) {
         case CommandType::QUERY_ACCOUNT:
             beginFrame(out, MsgType::QUERY_ACCOUNT, kQueryAccountBody);
             w.u32(c.user);
+            w.u64(c.clientRef);
+            break;
+        case CommandType::QUERY_INFO:
+            beginFrame(out, MsgType::QUERY_INFO, kQueryInfoBody);
             w.u64(c.clientRef);
             break;
         case CommandType::QUERY_BOOK: {
@@ -206,6 +211,16 @@ inline bool decodeQueryBook(const std::uint8_t* body, std::size_t len, Command& 
     return true;
 }
 
+inline bool decodeQueryInfo(const std::uint8_t* body, std::size_t len, Command& out) {
+    if (len != kQueryInfoBody) return false;
+    ByteReader r(body, len);
+    Command c{};
+    c.type      = CommandType::QUERY_INFO;
+    c.clientRef = r.u64();
+    out = c;
+    return true;
+}
+
 // Decodes any gateway -> engine frame. false = unknown message type or a malformed body.
 inline bool decodeCommandFrame(std::uint8_t type, const std::uint8_t* body, std::size_t len,
                                Command& out) {
@@ -213,6 +228,7 @@ inline bool decodeCommandFrame(std::uint8_t type, const std::uint8_t* body, std:
     if (type == static_cast<std::uint8_t>(MsgType::CANCEL_ORDER))  return decodeCancel(body, len, out);
     if (type == static_cast<std::uint8_t>(MsgType::QUERY_ACCOUNT)) return decodeQueryAccount(body, len, out);
     if (type == static_cast<std::uint8_t>(MsgType::QUERY_BOOK))    return decodeQueryBook(body, len, out);
+    if (type == static_cast<std::uint8_t>(MsgType::QUERY_INFO))    return decodeQueryInfo(body, len, out);
     return false;
 }
 
@@ -223,7 +239,7 @@ inline bool decodeEvent(const std::uint8_t* body, std::size_t len, Event& out) {
     const std::uint8_t reason = r.u8();
     const std::uint8_t status = r.u8();
     const std::uint8_t side   = r.u8();
-    if (type > 9 || reason > 8 || status > 4 || side > 1) return false;
+    if (type > 10 || reason > 8 || status > 4 || side > 1) return false;
     Event e;
     e.type      = static_cast<EventType>(type);
     e.reason    = static_cast<RejectReason>(reason);

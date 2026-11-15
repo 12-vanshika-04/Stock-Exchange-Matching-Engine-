@@ -6,11 +6,11 @@
 
 namespace exch {
 
-enum class CommandType : std::uint8_t { NEW_ORDER, CANCEL_ORDER, QUERY_ACCOUNT, QUERY_BOOK };
+enum class CommandType : std::uint8_t { NEW_ORDER, CANCEL_ORDER, QUERY_ACCOUNT, QUERY_BOOK, QUERY_INFO };
 
 // Queries only read: they change nothing and are never journaled.
 constexpr bool isQuery(CommandType t) {
-    return t == CommandType::QUERY_ACCOUNT || t == CommandType::QUERY_BOOK;
+    return t == CommandType::QUERY_ACCOUNT || t == CommandType::QUERY_BOOK || t == CommandType::QUERY_INFO;
 }
 
 // The most price levels per side that one QUERY_BOOK returns.
@@ -43,7 +43,8 @@ enum class EventType : std::uint8_t {
     BOOK_LEVEL,        // symbol, side (BUY = bid, SELL = ask), price, qty = total shares at that price.
                        // Bids best-first, then asks best-first.
     QUERY_DONE,
-    QUERY_REJECTED     // reason = UNKNOWN_USER or UNKNOWN_SYMBOL
+    QUERY_REJECTED,    // reason = UNKNOWN_USER or UNKNOWN_SYMBOL
+    ENGINE_INFO        // qty = the engine's journal id (0 if it has none), remaining = number of symbols
 };
 
 // What the engine sends back. Which fields matter depends on `type`.

@@ -353,3 +353,18 @@ TEST_F(TcpServerTest, AccountAndBookQueriesAreAnsweredOverTheSocket) {
     EXPECT_EQ(ev[4].clientRef, 3u);
     EXPECT_EQ(ev[5].type, EventType::QUERY_DONE);
 }
+
+TEST_F(TcpServerTest, EngineInfoIsAnsweredOverTheSocket) {
+    Client c(server->port());
+    Command q{};
+    q.type      = CommandType::QUERY_INFO;
+    q.clientRef = 11;
+    ASSERT_TRUE(c.sendAll(frameOf(q)));
+    std::vector<Event> ev;
+    ASSERT_TRUE(c.readEvents(2, ev));
+    EXPECT_EQ(ev[0].type, EventType::ENGINE_INFO);
+    EXPECT_EQ(ev[0].qty, 0);                             // this pipeline has no journal
+    EXPECT_EQ(ev[0].remaining, 1);                       // one symbol
+    EXPECT_EQ(ev[0].clientRef, 11u);
+    EXPECT_EQ(ev[1].type, EventType::QUERY_DONE);
+}

@@ -9,6 +9,7 @@ const QUERY_ANSWER = new Set([
   EventType.BOOK_LEVEL,
   EventType.QUERY_DONE,
   EventType.QUERY_REJECTED,
+  EventType.ENGINE_INFO,
 ]);
 
 function engineError(message, code) {
@@ -147,6 +148,17 @@ export class EngineClient extends EventEmitter {
       }, timeoutMs);
       this.#queries.set(clientRef, { events: [], resolve, reject, timer });
     });
+  }
+
+  /**
+   * Asks the engine which journal it runs on. Returns { engineId, symbols }: engineId is a
+   * string, '0' if the engine has no journal identity. Every fresh journal has a new id.
+   */
+  async engineId() {
+    const events = await this.query({ kind: 'queryInfo' });
+    const info = events.find((e) => e.type === EventType.ENGINE_INFO);
+    if (!info) throw new Error('the engine sent no info');
+    return { engineId: String(info.qty), symbols: info.remaining };
   }
 
   /** Closes the connection for good. Resolves once the socket is closed. */

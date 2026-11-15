@@ -205,7 +205,7 @@ TEST(JournaledPipeline, RestartRecoversAndTheEnginesKeepBehavingIdentically) {
 
     JournaledPipeline pipe(1, file.path());
     EXPECT_EQ(pipe.recovery().read.status, JournalStatus::CLEAN);
-    EXPECT_EQ(pipe.recovery().read.records, 7u + first.size());   // 1 price + 3 accounts + 3 grants + commands
+    EXPECT_EQ(pipe.recovery().read.records, 8u + first.size());   // 1 id + 1 price + 3 accounts + 3 grants + commands
     expectSameState(ref, pipe.core().core(), 3);
 
     std::vector<Event> expected;

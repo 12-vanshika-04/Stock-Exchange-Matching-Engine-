@@ -312,7 +312,7 @@ TEST(JournaledCore, RecoveryReproducesTheExactState) {
 
     JournaledCore recovered(1, file.path());
     EXPECT_EQ(recovered.recovery().read.status, JournalStatus::CLEAN);
-    EXPECT_EQ(recovered.recovery().read.records, 7u + first.size());   // 1 price + 3 accounts + 3 grants + commands
+    EXPECT_EQ(recovered.recovery().read.records, 8u + first.size());   // 1 id + 1 price + 3 accounts + 3 grants + commands
     expectSameState(ref, recovered.core(), 3);
 
     // The strongest check: from here on, both engines behave identically.
@@ -348,7 +348,7 @@ TEST(JournaledCore, TornTailIsDroppedAndTheJournalKeepsWorking) {
     {
         JournaledCore recovered(1, file.path());
         EXPECT_EQ(recovered.recovery().read.status, JournalStatus::TORN_TAIL);
-        EXPECT_EQ(recovered.recovery().read.records, 7u + cmds.size() - 1);
+        EXPECT_EQ(recovered.recovery().read.records, 8u + cmds.size() - 1);
         expectSameState(ref, recovered.core(), 3);
         EXPECT_EQ(fs::file_size(file.path()), recovered.recovery().read.validBytes);   // repaired
 
@@ -357,7 +357,7 @@ TEST(JournaledCore, TornTailIsDroppedAndTheJournalKeepsWorking) {
     }
     JournaledCore again(1, file.path());             // a second restart finds a clean, complete journal
     EXPECT_EQ(again.recovery().read.status, JournalStatus::CLEAN);
-    EXPECT_EQ(again.recovery().read.records, 7u + cmds.size());
+    EXPECT_EQ(again.recovery().read.records, 8u + cmds.size());
 }
 
 TEST(JournaledCore, CorruptJournalRefusesToStart) {
@@ -408,13 +408,14 @@ TEST(JournalConfig, AFreshJournalStartsWithTheReferencePrices) {
     TempFile file("cfg_fresh");
     { JournaledCore j(2, file.path(), {toPaise(2500), toPaise(800)}); }
     const auto recs = allRecords(file.path());
-    ASSERT_EQ(recs.size(), 2u);
-    EXPECT_EQ(recs[0].kind, RecordKind::REFERENCE_PRICE);
-    EXPECT_EQ(recs[0].symbol, 0);
-    EXPECT_EQ(recs[0].price, toPaise(2500));
+    ASSERT_EQ(recs.size(), 3u);                                  // the journal's id, then one price per symbol
+    EXPECT_EQ(recs[0].kind, RecordKind::JOURNAL_ID);
     EXPECT_EQ(recs[1].kind, RecordKind::REFERENCE_PRICE);
-    EXPECT_EQ(recs[1].symbol, 1);
-    EXPECT_EQ(recs[1].price, toPaise(800));
+    EXPECT_EQ(recs[1].symbol, 0);
+    EXPECT_EQ(recs[1].price, toPaise(2500));
+    EXPECT_EQ(recs[2].kind, RecordKind::REFERENCE_PRICE);
+    EXPECT_EQ(recs[2].symbol, 1);
+    EXPECT_EQ(recs[2].price, toPaise(800));
 }
 
 TEST(JournalConfig, RestartingWithTheSamePricesWorks) {
@@ -422,8 +423,8 @@ TEST(JournalConfig, RestartingWithTheSamePricesWorks) {
     { JournaledCore j(2, file.path(), {toPaise(2500), toPaise(800)}); }
     JournaledCore again(2, file.path(), {toPaise(2500), toPaise(800)});
     EXPECT_EQ(again.recovery().read.status, JournalStatus::CLEAN);
-    EXPECT_EQ(again.recovery().read.records, 2u);
-    EXPECT_EQ(allRecords(file.path()).size(), 2u);               // no second copy of the prices
+    EXPECT_EQ(again.recovery().read.records, 3u);
+    EXPECT_EQ(allRecords(file.path()).size(), 3u);               // no second copy of the id or the prices
 }
 
 TEST(JournalConfig, RestartingWithDifferentPricesIsRefused) {
@@ -508,4 +509,107 @@ TEST(JournalQueries, QueriesAreAnsweredButNeverJournaled) {
     JournaledCore again(1, file.path());                       // and the journal still recovers
     EXPECT_EQ(again.recovery().read.status, JournalStatus::CLEAN);
     EXPECT_EQ(again.core().exchange().accounts().account(0).reservedCash, toPaise(500) * 10);
+}
+
+// ---------- every journal has an identity ----------
+
+TEST(JournalIdentity, AFreshJournalStartsWithAnIdThenThePrices) {
+    TempFile file("id_fresh");
+    std::uint64_t id = 0;
+    {
+        JournaledCore j(2, file.path(), {toPaise(2500), toPaise(800)});
+        id = j.journalId();
+    }
+    EXPECT_NE(id, 0u);
+    EXPECT_LT(id, std::uint64_t{1} << 52);                      // fits a JavaScript number exactly
+    const auto recs = allRecords(file.path());
+    ASSERT_EQ(recs.size(), 3u);
+    EXPECT_EQ(recs[0].kind, RecordKind::JOURNAL_ID);
+    EXPECT_EQ(recs[0].orderId, id);
+    EXPECT_EQ(recs[1].kind, RecordKind::REFERENCE_PRICE);
+    EXPECT_EQ(recs[2].kind, RecordKind::REFERENCE_PRICE);
+}
+
+TEST(JournalIdentity, RestartingKeepsTheIdAndDoesNotWriteAnother) {
+    TempFile file("id_restart");
+    std::uint64_t id = 0;
+    {
+        JournaledCore j(1, file.path());
+        id = j.journalId();
+    }
+    JournaledCore again(1, file.path());
+    EXPECT_EQ(again.journalId(), id);
+    EXPECT_EQ(again.recovery().journalId, id);
+    EXPECT_EQ(allRecords(file.path()).size(), 2u);              // the id and one price, nothing more
+}
+
+TEST(JournalIdentity, EveryFreshJournalGetsItsOwnId) {
+    TempFile a("id_a");
+    TempFile b("id_b");
+    JournaledCore ja(1, a.path());
+    JournaledCore jb(1, b.path());
+    EXPECT_NE(ja.journalId(), jb.journalId());
+}
+
+TEST(JournalIdentity, AnOlderJournalWithoutOneIsGivenOneAndKeepsItsData) {
+    TempFile file("id_legacy");
+    {
+        JournalWriter w(file.path());                            // the old format: no id, no prices
+        w.append(JournalRecord::forCreateAccount(0, toPaise(1000)));
+        w.append(JournalRecord::forGrantShares(0, 0, 50, toPaise(500)));
+    }
+    std::uint64_t id = 0;
+    {
+        JournaledCore j(1, file.path());
+        id = j.journalId();
+        EXPECT_NE(id, 0u);
+        EXPECT_EQ(j.core().exchange().accounts().account(0).cash, toPaise(1000));
+        EXPECT_EQ(j.core().exchange().accounts().account(0).positions[0].qty, 50);
+    }
+    JournaledCore again(1, file.path());
+    EXPECT_EQ(again.journalId(), id);                           // the same id on the next start
+    EXPECT_EQ(again.core().exchange().accounts().account(0).cash, toPaise(1000));
+    EXPECT_EQ(allRecords(file.path()).size(), 3u);              // account, grant, and the id written at the end
+}
+
+TEST(JournalIdentity, TwoIdsOrAZeroIdAreRefused) {
+    {
+        TempFile file("id_two");
+        {
+            JournalWriter w(file.path());
+            w.append(JournalRecord::forJournalId(5));
+            w.append(JournalRecord::forJournalId(6));
+        }
+        EXPECT_THROW(JournaledCore(1, file.path()), std::runtime_error);
+    }
+    {
+        TempFile file("id_zero");
+        {
+            JournalWriter w(file.path());
+            w.append(JournalRecord::forJournalId(0));
+        }
+        EXPECT_THROW(JournaledCore(1, file.path()), std::runtime_error);
+    }
+}
+
+TEST(JournalIdentity, TheIdIsAnsweredByQueryInfoAndNeverJournaled) {
+    TempFile file("id_query");
+    {
+        JournaledCore j(1, file.path());
+        Command q{};
+        q.type      = CommandType::QUERY_INFO;
+        q.clientRef = 9;
+        std::vector<Event> ev;
+        j.process(q, [&](const Event& e) { ev.push_back(e); });
+        ASSERT_EQ(ev.size(), 2u);
+        EXPECT_EQ(ev[0].type, EventType::ENGINE_INFO);
+        EXPECT_EQ(static_cast<std::uint64_t>(ev[0].qty), j.journalId());
+        EXPECT_EQ(ev[1].type, EventType::QUERY_DONE);
+        j.flush();
+    }
+    std::uint64_t commands = 0;
+    readJournal(file.path(), [&](const JournalRecord& r) {
+        if (r.kind == RecordKind::COMMAND) ++commands;
+    });
+    EXPECT_EQ(commands, 0u);
 }

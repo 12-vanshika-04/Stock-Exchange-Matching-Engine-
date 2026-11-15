@@ -391,7 +391,51 @@ TEST(Wire, TheQueryEventTypesDecodeAndTheNextValueDoesNot) {
     Bytes frame;
     encodeEvent(Event{}, frame);
     Bytes body(frame.begin() + 5, frame.end());
-    body[0] = 10;                                        // one past QUERY_REJECTED
+    body[0] = 11;                                        // one past ENGINE_INFO
     Event out;
     EXPECT_FALSE(decodeEvent(body.data(), body.size(), out));
+}
+
+// ---- engine info ----
+
+TEST(Wire, QueryInfoHasTheDocumentedBytes) {
+    Command c{};
+    c.type      = CommandType::QUERY_INFO;
+    c.clientRef = 0x33;
+    Bytes out;
+    encodeCommand(c, out);
+    const Bytes expected = {
+        0x09, 0x00, 0x00, 0x00,                          // length = 9
+        0x05,                                            // QUERY_INFO
+        0x33, 0, 0, 0, 0, 0, 0, 0};                      // clientRef
+    EXPECT_EQ(out, expected);
+}
+
+TEST(Wire, QueryInfoRoundTripsAndTheEngineInfoEventDecodes) {
+    Command in{};
+    in.type      = CommandType::QUERY_INFO;
+    in.clientRef = 0xABCDEF;
+    Bytes frame;
+    encodeCommand(in, frame);
+    std::uint8_t type = 0;
+    Bytes body;
+    readOne(frame, type, body);
+    Command out{};
+    ASSERT_TRUE(decodeCommandFrame(type, body.data(), body.size(), out));
+    EXPECT_TRUE(sameCommand(in, out));
+    EXPECT_FALSE(decodeCommandFrame(type, body.data(), body.size() - 1, out));
+
+    Event e;
+    e.type      = EventType::ENGINE_INFO;
+    e.qty       = 4'503'599'627'370'495;                 // 2^52 - 1, the largest engine id
+    e.remaining = 6;
+    e.clientRef = 7;
+    Bytes eframe;
+    encodeEvent(e, eframe);
+    std::uint8_t etype = 0;
+    Bytes ebody;
+    readOne(eframe, etype, ebody);
+    Event eout;
+    ASSERT_TRUE(decodeEvent(ebody.data(), ebody.size(), eout));
+    EXPECT_TRUE(sameEvent(e, eout));
 }

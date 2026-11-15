@@ -324,3 +324,27 @@ TEST_F(EngineCoreTest, QueriesChangeNothing) {
     auto ev = run(newLimit(alice, Side::BUY, toPaise(499), 1));
     EXPECT_EQ(ev[0].orderId, makeOrderId(0, 2));               // the queries did not use up an order id
 }
+
+// ---------- engine identity ----------
+
+static Command queryInfoCmd(std::uint64_t ref = 0) {
+    Command c{};
+    c.type      = CommandType::QUERY_INFO;
+    c.clientRef = ref;
+    return c;
+}
+
+TEST_F(EngineCoreTest, QueryInfoReportsTheEngineIdAndSymbolCount) {
+    auto ev = run(queryInfoCmd(4));
+    ASSERT_EQ(ev.size(), 2u);
+    EXPECT_EQ(ev[0].type, EventType::ENGINE_INFO);
+    EXPECT_EQ(ev[0].qty, 0);                                   // no journal: no identity
+    EXPECT_EQ(ev[0].remaining, 1);                             // this core has one symbol
+    EXPECT_EQ(ev[0].clientRef, 4u);
+    EXPECT_EQ(ev[1].type, EventType::QUERY_DONE);
+
+    core.setEngineId(123456789);
+    ev = run(queryInfoCmd(5));
+    ASSERT_EQ(ev.size(), 2u);
+    EXPECT_EQ(ev[0].qty, 123456789);
+}

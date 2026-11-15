@@ -16,6 +16,10 @@ public:
     Exchange&       exchange()       { return exchange_; }
     const Exchange& exchange() const { return exchange_; }
 
+    // The identity of the journal this engine runs on (0 if it has none). Set once by JournaledCore.
+    void setEngineId(std::uint64_t id) { engineId_ = id; }
+    std::uint64_t engineId() const { return engineId_; }
+
     // Every resulting event is passed to emit(const Event&), in order.
      template <typename Sink>
     void process(const Command& c, Sink&& emit) {
@@ -24,6 +28,7 @@ public:
             case CommandType::CANCEL_ORDER:  cancelOrder(c, emit);  break;
             case CommandType::QUERY_ACCOUNT: queryAccount(c, emit); break;
             case CommandType::QUERY_BOOK:    queryBook(c, emit);    break;
+            case CommandType::QUERY_INFO:    queryInfo(c, emit);    break;
         }
     }
 
@@ -162,7 +167,23 @@ private:
         emit(done);
     }
 
+    template <typename Sink>
+    void queryInfo(const Command& c, Sink& emit) {
+        Event info;
+        info.type      = EventType::ENGINE_INFO;
+        info.qty       = static_cast<Qty>(engineId_);
+        info.remaining = static_cast<Qty>(exchange_.numSymbols());
+        info.clientRef = c.clientRef;
+        emit(info);
+
+        Event done;
+        done.type      = EventType::QUERY_DONE;
+        done.clientRef = c.clientRef;
+        emit(done);
+    }
+
     Exchange exchange_;
+    std::uint64_t engineId_ = 0;
 };
 
 }  // namespace exch

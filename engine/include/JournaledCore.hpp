@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <random>
 #include <stdexcept>
 #include <string>
 #include <unistd.h>
@@ -12,6 +13,7 @@ struct RecoveryResult {
     JournalReadResult read;
     bool              diverged = false;   // the journal asked for something replay could not reproduce
     std::string       detail;
+    std::uint64_t     journalId = 0;   // this journal's identity; 0 = an older journal that had none
 };
 
 // Rebuilds `core` (which must be freshly constructed and empty) from the journal.
@@ -35,6 +37,13 @@ inline RecoveryResult replayJournal(const std::string& path, EngineCore& core) {
     out.read = readJournal(path, [&](const JournalRecord& r) {
         if (out.diverged) return;
         AccountManager& acc = core.exchange().accounts();
+
+        if (r.kind == RecordKind::JOURNAL_ID) {
+            if (out.journalId != 0) { fail("the journal holds more than one journal id"); return; }
+            if (r.orderId == 0 || r.orderId >= (std::uint64_t{1} << 52)) { fail("the journal's id record is invalid"); return; }
+            out.journalId = r.orderId;
+            return;
+        }
 
         if (r.kind == RecordKind::REFERENCE_PRICE) {
             if (sawOther) { fail("a reference-price record appears after other records"); return; }
@@ -74,6 +83,7 @@ inline RecoveryResult replayJournal(const std::string& path, EngineCore& core) {
                 core.process(r.toCommand(), discard);
                 break;
             case RecordKind::REFERENCE_PRICE:
+            case RecordKind::JOURNAL_ID:
                 break;                               // handled above
         }
     });
@@ -95,6 +105,18 @@ inline RecoveryResult replayJournal(const std::string& path, EngineCore& core) {
     }
     return out;
 }
+// A random identity for a new journal: 52 bits (so it travels as an exact JavaScript number),
+// never 0. Every fresh journal gets its own, so rows saved to a database can tell engine runs apart.
+inline std::uint64_t newJournalId() {
+    std::random_device rd;
+    for (;;) {
+        const std::uint64_t id =
+            ((static_cast<std::uint64_t>(rd()) << 32) | static_cast<std::uint64_t>(rd())) &
+            ((std::uint64_t{1} << 52) - 1);
+        if (id != 0) return id;
+    }
+}
+
 // An EngineCore whose every input is journaled first. The constructor RECOVERS from an
 // existing journal: replay, cut off a torn tail, then keep appending.
 // It refuses to start (throws) if the journal is corrupt, foreign, or does not replay cleanly.
@@ -118,14 +140,23 @@ public:
         if (recovery_.diverged)
             throw std::runtime_error("journal replay diverged: " + recovery_.detail);
         writer_ = std::make_unique<JournalWriter>(path);
+        journalId_ = recovery_.journalId;
         if (recovery_.read.records == 0) {
-            // A brand-new journal starts by recording the reference prices it was created with.
+            // A brand-new journal starts with its identity, then the reference prices it was created with.
+            journalId_ = newJournalId();
+            writer_->append(JournalRecord::forJournalId(journalId_));
             for (std::size_t i = 0; i < numSymbols; ++i) {
                 const SymbolId s = static_cast<SymbolId>(i);
                 writer_->append(JournalRecord::forReferencePrice(s, core_.exchange().referencePrice(s)));
             }
             writer_->flush();
+        } else if (journalId_ == 0) {
+            // An older journal that never had an identity: give it one now, written after what is already there.
+            journalId_ = newJournalId();
+            writer_->append(JournalRecord::forJournalId(journalId_));
+            writer_->flush();
         }
+        core_.setEngineId(journalId_);
     }
 
     UserId createAccount(Price cash) {
@@ -156,10 +187,12 @@ public:
     EngineCore&       core()       { return core_; }
     const EngineCore& core() const { return core_; }
     const RecoveryResult& recovery() const { return recovery_; }
+    std::uint64_t journalId() const { return journalId_; }
 
 private:
     EngineCore                     core_;
     RecoveryResult                 recovery_;
+    std::uint64_t                  journalId_ = 0;
     std::unique_ptr<JournalWriter> writer_;
 };
 

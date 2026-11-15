@@ -65,6 +65,7 @@ int main(int argc, char** argv) {
         std::printf("journal: %s (%s, %llu records recovered)\n", journal.c_str(),
                     fresh ? "new, seeded" : "recovered",
                     static_cast<unsigned long long>(pipe.recovery().read.records));
+        std::printf("engine id: %llu\n", static_cast<unsigned long long>(pipe.core().journalId()));
         std::printf("reference prices (Rs): ");
         for (const std::int64_t rupees : kReferenceRupees) std::printf("%lld ", static_cast<long long>(rupees));
         std::printf("\nCtrl+C to stop\n");

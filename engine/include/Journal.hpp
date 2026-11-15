@@ -37,7 +37,7 @@ inline std::uint32_t crc32(const std::uint8_t* data, std::size_t n) {
     return c ^ 0xFFFFFFFFu;
 }
 
-enum class RecordKind : std::uint8_t { CREATE_ACCOUNT = 1, GRANT_SHARES = 2, COMMAND = 3, REFERENCE_PRICE = 4 };
+enum class RecordKind : std::uint8_t { CREATE_ACCOUNT = 1, GRANT_SHARES = 2, COMMAND = 3, REFERENCE_PRICE = 4, JOURNAL_ID = 5 };
 
 // One journal entry. All three kinds share one flat layout; unused fields stay 0.
 //   CREATE_ACCOUNT: user = the id the account must get, price = initial cash
@@ -77,7 +77,15 @@ struct JournalRecord {
         r.price = cash;
         return r;
     }
-        static JournalRecord forReferencePrice(SymbolId symbol, Price referencePrice) {
+        // The identity of a journal (see JournaledCore). Kept in orderId: 52 bits, never 0.
+    static JournalRecord forJournalId(std::uint64_t id) {
+        JournalRecord r;
+        r.kind    = RecordKind::JOURNAL_ID;
+        r.orderId = id;
+        return r;
+    }
+
+    static JournalRecord forReferencePrice(SymbolId symbol, Price referencePrice) {
         JournalRecord r;
         r.kind   = RecordKind::REFERENCE_PRICE;
         r.symbol = symbol;
@@ -191,7 +199,7 @@ inline bool decodePayload(const std::uint8_t* in, JournalRecord& r) {
     const auto cmd  = detail::get<std::uint8_t>(p);
     const auto side = detail::get<std::uint8_t>(p);
     const auto ot   = detail::get<std::uint8_t>(p);
-    if (kind < 1 || kind > 4 || cmd > 1 || side > 1 || ot > 1) return false;
+    if (kind < 1 || kind > 5 || cmd > 1 || side > 1 || ot > 1) return false;
     r.kind      = static_cast<RecordKind>(kind);
     r.cmdType   = static_cast<CommandType>(cmd);
     r.side      = static_cast<Side>(side);

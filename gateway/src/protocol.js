@@ -19,6 +19,7 @@ export const MsgType = Object.freeze({
   CANCEL_ORDER: 2,
   QUERY_ACCOUNT: 3,
   QUERY_BOOK: 4,
+  QUERY_INFO: 5,
   EVENT: 16,
 });
 export const EventType = Object.freeze({
@@ -33,6 +34,7 @@ export const EventType = Object.freeze({
   BOOK_LEVEL: 7, // symbol, side, price, qty = total shares at that price (bids then asks, best first)
   QUERY_DONE: 8,
   QUERY_REJECTED: 9, // reason = UNKNOWN_USER or UNKNOWN_SYMBOL
+  ENGINE_INFO: 10, // qty = the engine's journal id (0 = none), remaining = number of symbols
 });
 export const OrderStatus = Object.freeze({
   NEW: 0,
@@ -60,6 +62,7 @@ const NEW_ORDER_BODY = 32;
 const CANCEL_BODY = 22;
 const QUERY_ACCOUNT_BODY = 12;
 const QUERY_BOOK_BODY = 14;
+const QUERY_INFO_BODY = 8;
 
 export class ProtocolError extends Error {
   constructor(message) {
@@ -148,6 +151,13 @@ export function encodeCommand(c) {
     b.writeBigUInt64LE(checkBigint(c.clientRef, 'clientRef'), 9);
     return b;
   }
+  if (c.kind === 'queryInfo') {
+    const b = Buffer.alloc(LEN_BYTES + 1 + QUERY_INFO_BODY);
+    b.writeUInt32LE(1 + QUERY_INFO_BODY, 0);
+    b.writeUInt8(MsgType.QUERY_INFO, 4);
+    b.writeBigUInt64LE(checkBigint(c.clientRef, 'clientRef'), 5);
+    return b;
+  }
   if (c.kind === 'queryBook') {
     const b = Buffer.alloc(LEN_BYTES + 1 + QUERY_BOOK_BODY);
     b.writeUInt32LE(1 + QUERY_BOOK_BODY, 0);
@@ -194,7 +204,7 @@ export function decodeEvent(body) {
   const reason = body.readUInt8(1);
   const status = body.readUInt8(2);
   const side = body.readUInt8(3);
-  if (type > 9 || reason > 8 || status > 4 || side > 1) {
+  if (type > 10 || reason > 8 || status > 4 || side > 1) {
     throw new ProtocolError('event holds an invalid enum value');
   }
   return {
@@ -311,6 +321,10 @@ export function decodeCommandFrame(frame) {
   if (frame.type === MsgType.QUERY_BOOK) {
     if (b.length !== QUERY_BOOK_BODY) throw new ProtocolError(`QUERY_BOOK body must be ${QUERY_BOOK_BODY} bytes, got ${b.length}`);
     return { kind: 'queryBook', symbol: b.readUInt16LE(0), depth: b.readUInt32LE(2), clientRef: b.readBigUInt64LE(6) };
+  }
+  if (frame.type === MsgType.QUERY_INFO) {
+    if (b.length !== QUERY_INFO_BODY) throw new ProtocolError(`QUERY_INFO body must be ${QUERY_INFO_BODY} bytes, got ${b.length}`);
+    return { kind: 'queryInfo', clientRef: b.readBigUInt64LE(0) };
   }
   throw new ProtocolError(`unknown command type ${frame.type}`);
 }

@@ -61,5 +61,5 @@ test('the query event types decode, and the next value does not', () => {
     assert.equal(e.remaining, 3);
     assert.equal(e.clientRef, 42n);
   }
-  assert.throws(() => decodeEvent(eventFrame({ type: 10 }).subarray(5)), ProtocolError);
+  assert.throws(() => decodeEvent(eventFrame({ type: 11 }).subarray(5)), ProtocolError);
 });
